@@ -76,7 +76,7 @@ always @(timing_recalculate) begin
     ^[if i != 0]^ else ^[end if]^ ^[if i != timing_N-1]^ if (timing_current_event == ^i) ^[end if]^ -> timing_^i;
 ^[end for]^
     timing_current_in_flight = 1;
-    timing_total_in_flight += 1;
+    timing_total_in_flight = timing_total_in_flight + 1;
     if(timing_total_in_flight > ^timing_N && !timing_error_occurred) begin
         timing_error_occurred = 1;
         $display("Error in oscillator control read! Too many inputs at sim time %g", $realtime);
@@ -86,7 +86,7 @@ end
 ^[for i in range(timing_N)]^
 always @(timing_^i) begin
     #(next_edge_time - $realtime) if (timing_current_event == ^i) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 ^[end for]^
 
@@ -130,7 +130,7 @@ always @(ctrl or recalculate) begin
     // TODO one big flaw with this design is its reliance on floating point
     // equality in the next line. It should be ok if timescale and timestep
     // match, because then next_edge time should be integer?
-    end else if ($abs(next_edge_time - $realtime) < EPSILON) begin
+    end else if ($realtime < next_edge_time + EPSILON) begin
         
 ^[for i in range(2*N)]^
 ^{condition = f'event_id == {i}'}^

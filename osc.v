@@ -81,7 +81,7 @@ always @(timing_recalculate) begin
     else if (timing_current_event == 3) -> timing_3;
     else -> timing_4;
     timing_current_in_flight = 1;
-    timing_total_in_flight += 1;
+    timing_total_in_flight = timing_total_in_flight + 1;
     if(timing_total_in_flight > 5 && !timing_error_occurred) begin
         timing_error_occurred = 1;
         $display("Error in oscillator control read! Too many inputs at sim time %g", $realtime);
@@ -90,23 +90,23 @@ end
 
 always @(timing_0) begin
     #(next_edge_time - $realtime) if (timing_current_event == 0) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 always @(timing_1) begin
     #(next_edge_time - $realtime) if (timing_current_event == 1) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 always @(timing_2) begin
     #(next_edge_time - $realtime) if (timing_current_event == 2) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 always @(timing_3) begin
     #(next_edge_time - $realtime) if (timing_current_event == 3) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 always @(timing_4) begin
     #(next_edge_time - $realtime) if (timing_current_event == 4) -> timing_final;
-    timing_total_in_flight -= 1;
+    timing_total_in_flight = timing_total_in_flight - 1;
 end
 
 always @(timing_final) begin
@@ -151,7 +151,7 @@ always @(ctrl or recalculate) begin
     // TODO one big flaw with this design is its reliance on floating point
     // equality in the next line. It should be ok if timescale and timestep
     // match, because then next_edge time should be integer?
-    end else if ($abs(next_edge_time - $realtime) < EPSILON) begin
+    end else if ($realtime < next_edge_time + EPSILON) begin
         
         if (event_id == 0) out_a <= 0;
         else if (event_id == 1) out_b <= 1;
